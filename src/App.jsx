@@ -4,11 +4,13 @@ import Hero from './components/Hero';
 import JobDescriptionForm from './components/JobDescriptionForm';
 import ResumeUpload from './components/ResumeUpload';
 import ScreeningResults from './components/ScreeningResults';
+import AssessmentFlow from './components/AssessmentFlow';
 
 function App() {
   const [currentStep, setCurrentStep] = useState('hero');
   const [jobProfile, setJobProfile] = useState(null);
   const [screeningResult, setScreeningResult] = useState(null);
+  const [assessmentData, setAssessmentData] = useState(null);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
@@ -69,7 +71,9 @@ function App() {
       }
 
       const assessment = await response.json();
-      alert(`Assessment created successfully!\nAssessment ID: ${assessment.assessment_id}\nCompany Type: ${assessment.company_type}\nPipeline: ${assessment.pipeline.join(', ')}`);
+      setAssessmentData(assessment);
+      setCurrentStep('assessment');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
@@ -79,8 +83,46 @@ function App() {
     setCurrentStep('hero');
     setJobProfile(null);
     setScreeningResult(null);
+    setAssessmentData(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (currentStep === 'assessment' && assessmentData) {
+    return (
+      <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
+        <Navbar />
+        <AssessmentFlow assessmentData={assessmentData} />
+        <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-1 to-accent-2 flex items-center justify-center">
+                  <span className="text-white font-bold">AI</span>
+                </div>
+                <span className="text-muted-white font-semibold">AI InterviewHub</span>
+              </div>
+
+              <div className="text-muted-white/60 text-sm text-center md:text-left">
+                © 2025 AI InterviewHub. Powered by Advanced AI Technology.
+              </div>
+
+              <div className="flex gap-6">
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Privacy
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Terms
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Contact
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
