@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { CheckCircle2, ArrowRight, Loader2 } from 'lucide-react';
 import CodingRound from './CodingRound';
 import LiveCodingRound from './LiveCodingRound';
+import SystemDesignRound from './SystemDesignRound';
 
 export default function AssessmentFlow({ assessmentData }) {
   const [currentStage, setCurrentStage] = useState('overview');
@@ -39,8 +40,10 @@ export default function AssessmentFlow({ assessmentData }) {
     switch (roundType) {
       case 'coding_round':
         return <CodingRound assessmentId={assessmentId} onComplete={handleRoundComplete} />;
-      case 'live_coding':
+      case 'live_coding_round':
         return <LiveCodingRound assessmentId={assessmentId} onComplete={handleRoundComplete} />;
+      case 'system_design_round':
+        return <SystemDesignRound assessmentId={assessmentId} onComplete={handleRoundComplete} />;
       default:
         return (
           <div className="text-center py-20">
@@ -187,9 +190,9 @@ export default function AssessmentFlow({ assessmentData }) {
 function getRoundDescription(roundType) {
   const descriptions = {
     'coding_round': 'Solve 3 DSA problems (Easy, Medium, Hard) with time constraints',
-    'live_coding': 'Collaborate with AI interviewer to solve a problem while discussing your approach',
-    'system_design': 'Design scalable systems and explain architectural decisions',
-    'behavioral': 'Discuss your experience, projects, and problem-solving approach',
+    'live_coding_round': 'Collaborate with AI interviewer to solve a problem while discussing your approach',
+    'system_design_round': 'Design scalable systems and explain architectural decisions',
+    'behavioral_round': 'Discuss your experience, projects, and problem-solving approach',
     'technical_interview': 'Deep dive into technical concepts and past projects'
   };
 

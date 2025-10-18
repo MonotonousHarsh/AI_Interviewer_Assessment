@@ -69,9 +69,10 @@ export default function LiveCodingRound({ assessmentId, onComplete }) {
       if (!response.ok) throw new Error('Failed to fetch chat history');
 
       const data = await response.json();
-      if (data.chat_history && data.chat_history.length > 0) {
-        setMessages(data.chat_history.map(msg => ({
-          ...msg,
+      if (data.messages && data.messages.length > 0) {
+        setMessages(data.messages.map(msg => ({
+          role: msg.role === 'INTERVIEWER' ? 'assistant' : 'user',
+          content: msg.content,
           timestamp: new Date(msg.timestamp)
         })));
       }
@@ -111,10 +112,10 @@ export default function LiveCodingRound({ assessmentId, onComplete }) {
       if (!response.ok) throw new Error('Failed to send message');
 
       const data = await response.json();
-      if (data.ai_response) {
+      if (data.interviewer_response) {
         setMessages(prev => [...prev, {
           role: 'assistant',
-          content: data.ai_response,
+          content: data.interviewer_response,
           timestamp: new Date()
         }]);
       }
@@ -159,7 +160,11 @@ export default function LiveCodingRound({ assessmentId, onComplete }) {
       if (!response.ok) throw new Error('Failed to run code');
 
       const result = await response.json();
-      setCodeOutput(result);
+      setCodeOutput({
+        output: result.execution_result?.stdout || result.system_message,
+        error: result.execution_result?.stderr || result.execution_result?.compile_output,
+        execution_time: result.execution_result?.time ? `${result.execution_result.time}s` : null
+      });
     } catch (error) {
       console.error('Error running code:', error);
       setCodeOutput({ error: error.message });

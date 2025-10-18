@@ -57,6 +57,7 @@ export default function CodingRound({ assessmentId, onComplete }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          assessment_id: assessmentId,
           question_id: questions[currentQuestionIndex].question_id,
           language,
           code
@@ -297,10 +298,10 @@ export default function CodingRound({ assessmentId, onComplete }) {
 
             {testResults && (
               <div className={`glass-effect rounded-2xl p-6 border shadow-card-shadow ${
-                testResults.all_passed ? 'border-neon-green/20' : 'border-red-400/20'
+                testResults.test_case_summary?.passed === testResults.test_case_summary?.total ? 'border-neon-green/20' : 'border-red-400/20'
               }`}>
                 <div className="flex items-center gap-3 mb-4">
-                  {testResults.all_passed ? (
+                  {testResults.test_case_summary?.passed === testResults.test_case_summary?.total ? (
                     <>
                       <CheckCircle2 className="w-6 h-6 text-neon-green" />
                       <h3 className="text-xl font-semibold text-neon-green">All Tests Passed!</h3>
@@ -313,32 +314,60 @@ export default function CodingRound({ assessmentId, onComplete }) {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  {testResults.test_cases?.map((test, idx) => (
-                    <div key={idx} className={`p-3 rounded-lg border ${
-                      test.passed ? 'bg-neon-green/10 border-neon-green/30' : 'bg-red-500/10 border-red-500/30'
-                    }`}>
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-white/80 text-sm">Test Case {idx + 1}</span>
-                        {test.passed ? (
-                          <CheckCircle2 className="w-4 h-4 text-neon-green" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-red-400" />
-                        )}
-                      </div>
-                      {!test.passed && test.error && (
-                        <p className="text-red-400 text-xs mt-2">{test.error}</p>
-                      )}
+                {testResults.test_case_summary && (
+                  <div className="mb-4 p-4 rounded-xl bg-bg-darker/50 border border-grid-blue/20">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-white/60">Tests Passed:</span>
+                      <span className="text-neon-green font-semibold">{testResults.test_case_summary.passed} / {testResults.test_case_summary.total}</span>
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-4 p-4 rounded-xl bg-bg-darker/50 border border-grid-blue/20">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-white/60">Execution Time:</span>
-                    <span className="text-cyan-glow font-semibold">{testResults.execution_time || 'N/A'}</span>
                   </div>
-                </div>
+                )}
+
+                {testResults.evaluation && (
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-xl bg-bg-darker/50 border border-grid-blue/20">
+                      <div className="text-center mb-3">
+                        <div className="text-3xl font-bold text-accent-1">{testResults.evaluation.overall_score}</div>
+                        <div className="text-xs text-muted-white/60">Overall Score</div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-muted-white/60">Correctness:</span>
+                          <span className="text-neon-green font-semibold ml-2">{testResults.evaluation.correctness_score}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-white/60">Optimality:</span>
+                          <span className="text-cyan-glow font-semibold ml-2">{testResults.evaluation.optimality_score}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-white/60">Code Quality:</span>
+                          <span className="text-blue-400 font-semibold ml-2">{testResults.evaluation.code_quality_score}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-white/60">Edge Cases:</span>
+                          <span className="text-purple-400 font-semibold ml-2">{testResults.evaluation.edge_case_score}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {testResults.evaluation.code_feedback && (
+                      <div className="p-4 rounded-xl bg-bg-darker/50 border border-grid-blue/20">
+                        <h4 className="text-sm font-semibold text-muted-white mb-2">Feedback:</h4>
+                        <p className="text-xs text-muted-white/70 leading-relaxed">{testResults.evaluation.code_feedback}</p>
+                      </div>
+                    )}
+
+                    {testResults.evaluation.big_o_analysis && (
+                      <div className="p-4 rounded-xl bg-bg-darker/50 border border-grid-blue/20">
+                        <h4 className="text-sm font-semibold text-muted-white mb-2">Complexity Analysis:</h4>
+                        <div className="text-xs text-muted-white/70">
+                          <div>Time: <span className="text-cyan-glow font-mono">{testResults.evaluation.big_o_analysis.time}</span></div>
+                          <div>Space: <span className="text-cyan-glow font-mono">{testResults.evaluation.big_o_analysis.space}</span></div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
