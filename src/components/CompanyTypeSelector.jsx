@@ -31,7 +31,7 @@ export default function CompanyTypeSelector({ onSelectType }) {
       color: 'from-green-500 to-emerald-500',
       bgColor: 'from-green-500/10 to-emerald-500/10',
       borderColor: 'border-green-500/30',
-      comingSoon: true,
+      comingSoon: false,
     },
   ];
 

@@ -7,6 +7,7 @@ import ResumeUpload from './components/ResumeUpload';
 import ScreeningResults from './components/ScreeningResults';
 import AssessmentFlow from './components/AssessmentFlow';
 import ServiceCompanyFlow from './components/ServiceCompanyFlow';
+import AnalystCompanyFlow from './components/AnalystCompanyFlow';
 
 function App() {
   const [currentStep, setCurrentStep] = useState('hero');
@@ -35,29 +36,17 @@ function App() {
   const handleCompanyTypeSelect = async (type) => {
     setCompanyType(type);
 
-    if (type === 'service') {
-      try {
-        const response = await fetch('http://localhost:8000/service/assessments/create', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            candidate_id: `candidate_${Date.now()}`,
-            candidate_email: 'candidate@example.com',
-          })
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to create service assessment');
-        }
-
-        const assessment = await response.json();
-        setAssessmentData(assessment);
-        setCurrentStep('service-assessment');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } catch (error) {
-        alert(`Error: ${error.message}`);
-      }
-    } else {
+    if (type === 'product') {
+      setCurrentStep('job-description');
+      setTimeout(() => {
+        document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else if (type === 'service') {
+      setCurrentStep('job-description');
+      setTimeout(() => {
+        document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    } else if (type === 'analyst') {
       setCurrentStep('job-description');
       setTimeout(() => {
         document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
@@ -89,27 +78,67 @@ function App() {
     }, 100);
   };
 
-  const handleProceedToAssessment = async () => {
+  const handleProceedToAssessment = async (selectedType) => {
     try {
-      const response = await fetch('http://localhost:8000/assessments/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          candidate_id: `candidate_${Date.now()}`,
-          candidate_email: 'candidate@example.com',
-          job_id: jobProfile.job_id,
-          preferred_language: 'python'
-        })
-      });
+      const finalType = selectedType || companyType;
 
-      if (!response.ok) {
-        throw new Error('Failed to create assessment');
+      if (finalType === 'service') {
+        const response = await fetch('http://localhost:8000/service/assessments/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidate_id: `candidate_${Date.now()}`,
+            candidate_email: 'candidate@example.com',
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create service assessment');
+        }
+
+        const assessment = await response.json();
+        setAssessmentData(assessment);
+        setCurrentStep('service-assessment');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (finalType === 'analyst') {
+        const response = await fetch('http://localhost:8000/analyst/assessments/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidate_id: `candidate_${Date.now()}`,
+            candidate_email: 'candidate@example.com',
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create analyst assessment');
+        }
+
+        const assessment = await response.json();
+        setAssessmentData(assessment);
+        setCurrentStep('analyst-assessment');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const response = await fetch('http://localhost:8000/assessments/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidate_id: `candidate_${Date.now()}`,
+            candidate_email: 'candidate@example.com',
+            job_id: jobProfile.job_id,
+            preferred_language: 'python'
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create assessment');
+        }
+
+        const assessment = await response.json();
+        setAssessmentData(assessment);
+        setCurrentStep('assessment');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-
-      const assessment = await response.json();
-      setAssessmentData(assessment);
-      setCurrentStep('assessment');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       alert(`Error: ${error.message}`);
     }
@@ -123,6 +152,43 @@ function App() {
     setAssessmentData(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (currentStep === 'analyst-assessment' && assessmentData) {
+    return (
+      <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
+        <Navbar />
+        <AnalystCompanyFlow assessmentId={assessmentData.assessment_id} />
+        <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-1 to-accent-2 flex items-center justify-center">
+                  <span className="text-white font-bold">AI</span>
+                </div>
+                <span className="text-muted-white font-semibold">AI InterviewHub</span>
+              </div>
+
+              <div className="text-muted-white/60 text-sm text-center md:text-left">
+                © 2025 AI InterviewHub. Powered by Advanced AI Technology.
+              </div>
+
+              <div className="flex gap-6">
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Privacy
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Terms
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Contact
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   if (currentStep === 'service-assessment' && assessmentData) {
     return (

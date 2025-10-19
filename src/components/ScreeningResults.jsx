@@ -1,9 +1,23 @@
 import { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, AlertTriangle, TrendingUp, Award, Briefcase, MessageSquare, RefreshCw, ArrowRight } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertTriangle, TrendingUp, Award, Briefcase, MessageSquare, RefreshCw, ArrowRight, Building2, Users, BarChart3 } from 'lucide-react';
 
 export default function ScreeningResults({ screeningResult, jobProfile, onRetry, onProceedToAssessment }) {
   const [isVisible, setIsVisible] = useState(false);
+  const [showPipelineSelection, setShowPipelineSelection] = useState(false);
+  const [selectedPipeline, setSelectedPipeline] = useState(null);
   const isPassed = screeningResult.match_score >= 70;
+
+  const getRecommendedType = () => {
+    const summary = screeningResult.summary?.toLowerCase() || '';
+    if (summary.includes('service') || summary.includes('tcs') || summary.includes('infosys')) {
+      return 'service';
+    } else if (summary.includes('analyst') || summary.includes('data') || summary.includes('bi')) {
+      return 'analyst';
+    }
+    return 'product';
+  };
+
+  const recommendedType = getRecommendedType();
 
   useEffect(() => {
     setTimeout(() => setIsVisible(true), 100);
@@ -161,32 +175,111 @@ export default function ScreeningResults({ screeningResult, jobProfile, onRetry,
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          {isPassed ? (
+        {!showPipelineSelection ? (
+          <div className="flex flex-col sm:flex-row gap-4">
+            {isPassed ? (
+              <button
+                onClick={() => setShowPipelineSelection(true)}
+                className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
+              >
+                Proceed to Assessment
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            ) : (
+              <button
+                onClick={onRetry}
+                className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
+              >
+                <RefreshCw className="w-5 h-5" />
+                Update Resume & Retry
+              </button>
+            )}
+
             <button
-              onClick={onProceedToAssessment}
-              className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="flex-1 px-6 py-4 rounded-xl glass-effect border border-accent-1/35 text-muted-white font-semibold hover:border-accent-1/75 transition-all hover:shadow-hero-glow"
             >
-              Proceed to Assessment
+              Start New Application
+            </button>
+          </div>
+        ) : (
+          <div className="glass-effect rounded-2xl p-8 border border-cyan-glow/20">
+            <div className="text-center mb-8">
+              <h3 className="text-3xl font-bold text-white mb-2">Choose Your Assessment Pipeline</h3>
+              <p className="text-muted-white/70">
+                Based on your resume, we recommend: <span className="text-cyan-400 font-semibold capitalize">{recommendedType} Company</span>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {[
+                {
+                  id: 'product',
+                  name: 'Product Company',
+                  icon: Building2,
+                  description: 'Coding, System Design, Behavioral',
+                  color: 'from-blue-500 to-cyan-500',
+                  borderColor: 'border-blue-500/30',
+                  bgColor: 'from-blue-500/10 to-cyan-500/10'
+                },
+                {
+                  id: 'service',
+                  name: 'Service Company',
+                  icon: Users,
+                  description: 'Aptitude, Core Competency, Technical, HR',
+                  color: 'from-purple-500 to-pink-500',
+                  borderColor: 'border-purple-500/30',
+                  bgColor: 'from-purple-500/10 to-pink-500/10'
+                },
+                {
+                  id: 'analyst',
+                  name: 'Analyst Role',
+                  icon: BarChart3,
+                  description: 'Quantitative, SQL, Case Study, Domain',
+                  color: 'from-green-500 to-emerald-500',
+                  borderColor: 'border-green-500/30',
+                  bgColor: 'from-green-500/10 to-emerald-500/10'
+                }
+              ].map((pipeline) => {
+                const Icon = pipeline.icon;
+                const isRecommended = pipeline.id === recommendedType;
+                const isSelected = selectedPipeline === pipeline.id;
+
+                return (
+                  <button
+                    key={pipeline.id}
+                    onClick={() => setSelectedPipeline(pipeline.id)}
+                    className={`relative p-6 rounded-xl border-2 transition-all text-left ${
+                      isSelected
+                        ? `${pipeline.borderColor} bg-gradient-to-br ${pipeline.bgColor} scale-105`
+                        : 'border-slate-700/50 hover:border-slate-600 bg-slate-800/30'
+                    }`}
+                  >
+                    {isRecommended && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full">
+                        <span className="text-xs text-white font-semibold">Recommended</span>
+                      </div>
+                    )}
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${pipeline.bgColor} border ${pipeline.borderColor} flex items-center justify-center mb-4`}>
+                      <Icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h4 className="text-lg font-bold text-white mb-2">{pipeline.name}</h4>
+                    <p className="text-sm text-muted-white/70">{pipeline.description}</p>
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => onProceedToAssessment(selectedPipeline)}
+              disabled={!selectedPipeline}
+              className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-accent-1 to-accent-2 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              Start {selectedPipeline ? selectedPipeline.charAt(0).toUpperCase() + selectedPipeline.slice(1) : ''} Assessment
               <ArrowRight className="w-5 h-5" />
             </button>
-          ) : (
-            <button
-              onClick={onRetry}
-              className="flex-1 px-6 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1 flex items-center justify-center gap-2"
-            >
-              <RefreshCw className="w-5 h-5" />
-              Update Resume & Retry
-            </button>
-          )}
-
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="flex-1 px-6 py-4 rounded-xl glass-effect border border-accent-1/35 text-muted-white font-semibold hover:border-accent-1/75 transition-all hover:shadow-hero-glow"
-          >
-            Start New Application
-          </button>
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );
