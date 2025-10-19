@@ -29,4 +29,19 @@ export const API_ENDPOINTS = {
     complete: (roundId) => `/assessments/system_design/${roundId}/complete`,
     status: (roundId) => `/assessments/system_design/${roundId}/status`,
   },
+  serviceCompany: {
+    create: '/service/assessments/create',
+    aptitudeTest: {
+      start: (assessmentId) => `/service/assessments/${assessmentId}/aptitude_test/start`,
+      questions: (roundId) => `/service/assessments/aptitude_test/${roundId}/questions`,
+      submit: (roundId) => `/service/assessments/aptitude_test/${roundId}/submit`,
+      results: (roundId) => `/service/assessments/aptitude_test/${roundId}/results`,
+    },
+    coreCompetency: {
+      start: (assessmentId) => `/service/assessments/${assessmentId}/core_competency/start`,
+      test: (roundId) => `/service/assessments/core_competency/${roundId}/test`,
+      submit: (roundId) => `/service/assessments/core_competency/${roundId}/submit`,
+      results: (roundId) => `/service/assessments/core_competency/${roundId}/results`,
+    },
+  },
 };

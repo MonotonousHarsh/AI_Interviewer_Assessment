@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import CompanyTypeSelector from './components/CompanyTypeSelector';
 import JobDescriptionForm from './components/JobDescriptionForm';
 import ResumeUpload from './components/ResumeUpload';
 import ScreeningResults from './components/ScreeningResults';
 import AssessmentFlow from './components/AssessmentFlow';
+import ServiceCompanyFlow from './components/ServiceCompanyFlow';
 
 function App() {
   const [currentStep, setCurrentStep] = useState('hero');
+  const [companyType, setCompanyType] = useState(null);
   const [jobProfile, setJobProfile] = useState(null);
   const [screeningResult, setScreeningResult] = useState(null);
   const [assessmentData, setAssessmentData] = useState(null);
@@ -23,10 +26,43 @@ function App() {
   }, []);
 
   const handleGetStarted = () => {
-    setCurrentStep('job-description');
+    setCurrentStep('company-type');
     setTimeout(() => {
-      document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('company-type')?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
+  };
+
+  const handleCompanyTypeSelect = async (type) => {
+    setCompanyType(type);
+
+    if (type === 'service') {
+      try {
+        const response = await fetch('http://localhost:8000/service/assessments/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            candidate_id: `candidate_${Date.now()}`,
+            candidate_email: 'candidate@example.com',
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create service assessment');
+        }
+
+        const assessment = await response.json();
+        setAssessmentData(assessment);
+        setCurrentStep('service-assessment');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+      }
+    } else {
+      setCurrentStep('job-description');
+      setTimeout(() => {
+        document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
   };
 
   const handleJobCreated = (profile) => {
@@ -81,11 +117,49 @@ function App() {
 
   const resetApp = () => {
     setCurrentStep('hero');
+    setCompanyType(null);
     setJobProfile(null);
     setScreeningResult(null);
     setAssessmentData(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  if (currentStep === 'service-assessment' && assessmentData) {
+    return (
+      <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
+        <Navbar />
+        <ServiceCompanyFlow assessmentId={assessmentData.assessment_id} />
+        <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-1 to-accent-2 flex items-center justify-center">
+                  <span className="text-white font-bold">AI</span>
+                </div>
+                <span className="text-muted-white font-semibold">AI InterviewHub</span>
+              </div>
+
+              <div className="text-muted-white/60 text-sm text-center md:text-left">
+                © 2025 AI InterviewHub. Powered by Advanced AI Technology.
+              </div>
+
+              <div className="flex gap-6">
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Privacy
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Terms
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Contact
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   if (currentStep === 'assessment' && assessmentData) {
     return (
@@ -137,7 +211,11 @@ function App() {
         <Hero onGetStarted={handleGetStarted} />
       </div>
 
-      {(currentStep === 'job-description' || currentStep === 'resume-upload' || currentStep === 'screening-results') && (
+      {(currentStep === 'company-type' || currentStep === 'job-description' || currentStep === 'resume-upload' || currentStep === 'screening-results') && (
+        <CompanyTypeSelector onSelectType={handleCompanyTypeSelect} />
+      )}
+
+      {(currentStep === 'job-description' || currentStep === 'resume-upload' || currentStep === 'screening-results') && companyType === 'product' && (
         <div
           style={{
             transform: `translateY(${Math.max(0, (scrollY - 400) * 0.02)}px)`,
