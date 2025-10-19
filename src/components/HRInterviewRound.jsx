@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Video, VideoOff, CheckCircle, AlertCircle, Users } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, CheckCircle, AlertCircle, Users, Clock } from 'lucide-react';
+import { apiClient } from '../utils/apiClient';
 
 export default function HRInterviewRound({ assessmentId, onComplete }) {
+  const [roundId, setRoundId] = useState(null);
+  const [roundData, setRoundData] = useState(null);
   const [roundStarted, setRoundStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [responses, setResponses] = useState({});
@@ -11,41 +14,9 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
   const [mediaStream, setMediaStream] = useState(null);
   const [recordedChunks, setRecordedChunks] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [results, setResults] = useState(null);
   const videoRef = useRef(null);
   const mediaRecorderRef = useRef(null);
-
-  const hrQuestions = [
-    {
-      id: 'hr_1',
-      question: 'Tell me about yourself and why you are interested in this position.',
-      category: 'Introduction',
-      timeLimit: 120,
-    },
-    {
-      id: 'hr_2',
-      question: 'Describe a challenging situation at work and how you handled it.',
-      category: 'Problem Solving',
-      timeLimit: 180,
-    },
-    {
-      id: 'hr_3',
-      question: 'What are your strengths and weaknesses?',
-      category: 'Self Assessment',
-      timeLimit: 120,
-    },
-    {
-      id: 'hr_4',
-      question: 'Where do you see yourself in 5 years?',
-      category: 'Career Goals',
-      timeLimit: 120,
-    },
-    {
-      id: 'hr_5',
-      question: 'Why should we hire you? What makes you the best fit for this role?',
-      category: 'Final Pitch',
-      timeLimit: 180,
-    },
-  ];
 
   useEffect(() => {
     return () => {
@@ -73,8 +44,16 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
   };
 
   const handleStartRound = async () => {
-    await startMediaCapture();
-    setRoundStarted(true);
+    try {
+      const response = await apiClient.post(`/service/assessments/${assessmentId}/hr_interview/start`);
+      setRoundId(response.round_id);
+      setRoundData(response);
+
+      await startMediaCapture();
+      setRoundStarted(true);
+    } catch (error) {
+      alert('Failed to start HR interview: ' + error.message);
+    }
   };
 
   const startRecording = () => {
@@ -84,55 +63,88 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
       mimeType: 'video/webm',
     });
 
+    const chunks = [];
     mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        setRecordedChunks((prev) => [...prev, event.data]);
+        chunks.push(event.data);
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const currentQuestion = roundData.first_question || roundData.questions?.[currentQuestionIndex];
+
+      const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+
+      try {
+        const formData = new FormData();
+        formData.append('question_id', currentQuestion.question_id);
+        formData.append('audio_data', audioBlob, 'audio.webm');
+        if (blob.size > 0) {
+          formData.append('video_data', blob, 'video.webm');
+        }
+
+        const response = await apiClient.post(
+          `/service/assessments/hr_interview/${roundId}/submit_response`,
+          formData,
+          {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+
+        setResponses(prev => ({
+          ...prev,
+          [currentQuestion.question_id]: {
+            blob,
+            timestamp: new Date().toISOString(),
+            evaluation: response.evaluation
+          }
+        }));
+
+        if (response.next_question) {
+          setCurrentQuestionIndex(prev => prev + 1);
+        }
+
+        if (response.all_questions_answered) {
+          handleCompleteInterview();
+        }
+      } catch (error) {
+        alert('Failed to submit response: ' + error.message);
       }
     };
 
     mediaRecorder.start();
     mediaRecorderRef.current = mediaRecorder;
     setIsRecording(true);
+    setRecordedChunks([]);
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-
-      mediaRecorderRef.current.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        const currentQuestion = hrQuestions[currentQuestionIndex];
-        setResponses({
-          ...responses,
-          [currentQuestion.id]: {
-            blob,
-            timestamp: new Date().toISOString(),
-          },
-        });
-        setRecordedChunks([]);
-      };
     }
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < hrQuestions.length - 1) {
+    if (currentQuestionIndex < (roundData?.total_questions || 0) - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     }
   };
 
-  const handleSubmitInterview = async () => {
+  const handleCompleteInterview = async () => {
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      onComplete({
-        totalQuestions: hrQuestions.length,
-        answeredQuestions: Object.keys(responses).length,
-        score: 85,
-        completed: true,
-      });
+      const response = await apiClient.post(
+        `/service/assessments/hr_interview/${roundId}/complete`
+      );
+
+      setResults(response);
+      setTimeout(() => onComplete(response), 3000);
     } catch (error) {
-      alert('Failed to submit interview: ' + error.message);
+      alert('Failed to complete interview: ' + error.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -158,6 +170,59 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
     }
   };
 
+  if (results) {
+    return (
+      <div className="glass-effect rounded-2xl p-8 border border-cyan-glow/20">
+        <div className="text-center mb-8">
+          <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-12 h-12 text-green-400" />
+          </div>
+          <h2 className="text-3xl font-bold text-white mb-2">HR Interview Complete</h2>
+          <p className="text-muted-white/70">
+            All assessment rounds completed successfully!
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <div className="text-4xl font-bold text-cyan-400 mb-2">{results.overall_score}%</div>
+            <div className="text-sm text-muted-white/60">Overall</div>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <div className="text-4xl font-bold text-blue-400 mb-2">
+              {results.component_scores?.communication || 0}%
+            </div>
+            <div className="text-sm text-muted-white/60">Communication</div>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <div className="text-4xl font-bold text-purple-400 mb-2">
+              {results.component_scores?.attitude || 0}%
+            </div>
+            <div className="text-sm text-muted-white/60">Attitude</div>
+          </div>
+          <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+            <div className="text-4xl font-bold text-green-400 mb-2">
+              {results.component_scores?.teamwork || 0}%
+            </div>
+            <div className="text-sm text-muted-white/60">Teamwork</div>
+          </div>
+        </div>
+
+        {results.cultural_fit_recommendation && (
+          <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
+            <h4 className="text-green-400 font-semibold mb-2">Cultural Fit</h4>
+            <p className="text-muted-white/70">{results.cultural_fit_recommendation}</p>
+          </div>
+        )}
+
+        <div className="text-center">
+          <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-4" />
+          <p className="text-xl text-white font-semibold">Assessment Pipeline Complete!</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!roundStarted) {
     return (
       <div className="glass-effect rounded-2xl p-8 border border-cyan-glow/20">
@@ -167,7 +232,7 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">HR Interview Round</h2>
           <p className="text-muted-white/70 max-w-2xl mx-auto mb-6">
-            This is the final round where we assess your communication skills, cultural fit, and career aspirations.
+            Final round assessing communication skills, cultural fit, and career aspirations through video responses.
           </p>
         </div>
 
@@ -197,9 +262,10 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
               <h4 className="text-yellow-400 font-semibold mb-1">Important Instructions</h4>
               <ul className="text-sm text-muted-white/70 space-y-1">
                 <li>• Camera and microphone access required</li>
-                <li>• 2-3 minutes per question</li>
+                <li>• 2 minutes per question</li>
                 <li>• Be honest and authentic in your responses</li>
                 <li>• Maintain professional demeanor throughout</li>
+                <li>• Questions will be evaluated for communication and cultural fit</li>
               </ul>
             </div>
           </div>
@@ -215,8 +281,9 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
     );
   }
 
-  const currentQuestion = hrQuestions[currentQuestionIndex];
-  const hasRecordedCurrentQuestion = !!responses[currentQuestion.id];
+  const currentQuestion = roundData?.first_question || roundData?.questions?.[currentQuestionIndex];
+  const hasRecordedCurrentQuestion = currentQuestion && !!responses[currentQuestion.question_id];
+  const totalQuestions = roundData?.total_questions || 0;
 
   return (
     <div className="space-y-6">
@@ -224,21 +291,27 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <div className="text-sm text-muted-white/60 mb-1">
-              Question {currentQuestionIndex + 1} of {hrQuestions.length}
+              Question {currentQuestionIndex + 1} of {totalQuestions}
             </div>
             <div className="text-xs px-3 py-1 bg-green-500/20 text-green-400 rounded-full inline-block">
-              {currentQuestion.category}
+              {currentQuestion?.category || 'HR Question'}
             </div>
           </div>
-          <div className="text-sm text-muted-white/70">
-            {Object.keys(responses).length}/{hrQuestions.length} answered
+          <div className="flex items-center gap-2">
+            <div className="text-sm text-muted-white/70">
+              {Object.keys(responses).length}/{totalQuestions} answered
+            </div>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-700/50 text-cyan-400">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-semibold">{currentQuestion?.time_limit_seconds ? `${currentQuestion.time_limit_seconds / 60} min` : '2 min'}</span>
+            </div>
           </div>
         </div>
 
         <div className="w-full bg-slate-700/50 rounded-full h-2 mb-4">
           <div
             className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all"
-            style={{ width: `${((currentQuestionIndex + 1) / hrQuestions.length) * 100}%` }}
+            style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
           />
         </div>
       </div>
@@ -246,87 +319,21 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="space-y-6">
           <div className="glass-effect rounded-2xl p-6 border border-cyan-glow/20">
-            <h3 className="text-xl font-semibold text-white mb-4">{currentQuestion.question}</h3>
+            <h3 className="text-xl font-semibold text-white mb-4">{currentQuestion?.question_text}</h3>
             <div className="flex items-center gap-2 text-sm text-muted-white/60">
               <AlertCircle className="w-4 h-4" />
-              <span>Time limit: {currentQuestion.timeLimit / 60} minutes</span>
+              <span>Time limit: {currentQuestion?.time_limit_seconds ? `${currentQuestion.time_limit_seconds / 60} minutes` : '2 minutes'}</span>
             </div>
           </div>
 
           <div className="glass-effect rounded-2xl p-6 border border-cyan-glow/20">
-            <h4 className="text-sm font-semibold text-muted-white/80 mb-3">Tips for this question:</h4>
+            <h4 className="text-sm font-semibold text-muted-white/80 mb-3">Tips for answering:</h4>
             <ul className="text-sm text-muted-white/70 space-y-2">
-              {currentQuestion.category === 'Introduction' && (
-                <>
-                  <li>• Keep it concise and relevant</li>
-                  <li>• Highlight your key achievements</li>
-                  <li>• Connect your experience to the role</li>
-                </>
-              )}
-              {currentQuestion.category === 'Problem Solving' && (
-                <>
-                  <li>• Use the STAR method (Situation, Task, Action, Result)</li>
-                  <li>• Be specific with examples</li>
-                  <li>• Focus on your contributions</li>
-                </>
-              )}
-              {currentQuestion.category === 'Self Assessment' && (
-                <>
-                  <li>• Be honest but positive</li>
-                  <li>• Turn weaknesses into growth opportunities</li>
-                  <li>• Provide concrete examples</li>
-                </>
-              )}
-              {currentQuestion.category === 'Career Goals' && (
-                <>
-                  <li>• Show ambition and direction</li>
-                  <li>• Align goals with company growth</li>
-                  <li>• Be realistic and grounded</li>
-                </>
-              )}
-              {currentQuestion.category === 'Final Pitch' && (
-                <>
-                  <li>• Summarize your unique value</li>
-                  <li>• Show enthusiasm for the role</li>
-                  <li>• Be confident and authentic</li>
-                </>
-              )}
+              <li>• Be concise and relevant</li>
+              <li>• Provide specific examples</li>
+              <li>• Speak clearly and confidently</li>
+              <li>• Maintain eye contact with camera</li>
             </ul>
-          </div>
-
-          <div className="glass-effect rounded-2xl p-6 border border-green-500/30 bg-green-500/5">
-            <h4 className="text-sm font-semibold text-green-400 mb-3">Your Progress</h4>
-            <div className="space-y-2">
-              {hrQuestions.map((q, index) => (
-                <div
-                  key={q.id}
-                  className={`flex items-center gap-3 p-2 rounded-lg ${
-                    index === currentQuestionIndex
-                      ? 'bg-green-500/20'
-                      : responses[q.id]
-                      ? 'bg-green-500/10'
-                      : 'bg-slate-800/30'
-                  }`}
-                >
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                      responses[q.id]
-                        ? 'bg-green-500'
-                        : index === currentQuestionIndex
-                        ? 'bg-green-500/50'
-                        : 'bg-slate-700'
-                    }`}
-                  >
-                    {responses[q.id] ? (
-                      <CheckCircle className="w-4 h-4 text-white" />
-                    ) : (
-                      <span className="text-xs text-white">{index + 1}</span>
-                    )}
-                  </div>
-                  <span className="text-sm text-muted-white/70">{q.category}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -422,18 +429,19 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
             Previous
           </button>
 
-          {currentQuestionIndex === hrQuestions.length - 1 ? (
+          {currentQuestionIndex === totalQuestions - 1 ? (
             <button
-              onClick={handleSubmitInterview}
-              disabled={isSubmitting || Object.keys(responses).length < hrQuestions.length}
+              onClick={handleCompleteInterview}
+              disabled={isSubmitting || Object.keys(responses).length < totalQuestions}
               className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg hover:shadow-green-500/50 transition-all disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : 'Complete Assessment'}
+              {isSubmitting ? 'Completing...' : 'Complete Assessment'}
             </button>
           ) : (
             <button
               onClick={handleNextQuestion}
-              className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all"
+              disabled={!hasRecordedCurrentQuestion}
+              className="px-6 py-3 bg-green-500 text-white rounded-xl font-semibold hover:bg-green-600 transition-all disabled:opacity-50"
             >
               Next Question
             </button>

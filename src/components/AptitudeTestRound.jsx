@@ -123,6 +123,8 @@ export default function AptitudeTestRound({ assessmentId, onComplete }) {
           <p className="text-muted-white/70">
             {results.next_round_started
               ? 'Great job! Moving to the next round...'
+              : results.overall_score >= 60
+              ? 'Good performance! Proceed to the next round.'
               : 'Score below threshold. Review your performance.'}
           </p>
         </div>
@@ -142,7 +144,7 @@ export default function AptitudeTestRound({ assessmentId, onComplete }) {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 mb-8">
           <h3 className="text-xl font-semibold text-white mb-4">Section-wise Performance</h3>
           {Object.entries(results.section_scores).map(([section, score]) => (
             <div key={section} className="bg-slate-800/30 rounded-lg p-4">
@@ -159,6 +161,15 @@ export default function AptitudeTestRound({ assessmentId, onComplete }) {
             </div>
           ))}
         </div>
+
+        {results.overall_score >= 60 && !results.next_round_started && (
+          <button
+            onClick={() => onComplete(results)}
+            className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
+          >
+            Proceed to Next Round
+          </button>
+        )}
       </div>
     );
   }
