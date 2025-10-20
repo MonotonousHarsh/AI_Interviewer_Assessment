@@ -109,9 +109,6 @@ export default function SQLTestRound({ assessmentId, onComplete }) {
       );
 
       setResults(response);
-      if (response.next_round_started) {
-        setTimeout(() => onComplete(response), 3000);
-      }
     } catch (error) {
       alert('Failed to complete test: ' + error.message);
     } finally {
@@ -141,10 +138,8 @@ export default function SQLTestRound({ assessmentId, onComplete }) {
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">SQL Test Complete</h2>
           <p className="text-muted-white/70">
-            {results.next_round_started
-              ? 'Great work! Moving to case study...'
-              : results.overall_score >= 60
-              ? 'Good performance! Proceed to the next round.'
+            {results.overall_score >= 60
+              ? 'Great work! Click below to proceed to the case study.'
               : 'Review your SQL skills and try again.'}
           </p>
         </div>
@@ -164,7 +159,7 @@ export default function SQLTestRound({ assessmentId, onComplete }) {
           </div>
         </div>
 
-        {results.overall_score >= 60 && !results.next_round_started && (
+        {results.overall_score >= 60 && (
           <button
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all"

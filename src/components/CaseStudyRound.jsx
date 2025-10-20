@@ -70,9 +70,6 @@ export default function CaseStudyRound({ assessmentId, onComplete }) {
       );
 
       setResults(apiResponse);
-      if (apiResponse.next_round_started) {
-        setTimeout(() => onComplete(apiResponse), 3000);
-      }
     } catch (error) {
       alert('Failed to submit response: ' + error.message);
     } finally {
@@ -101,10 +98,8 @@ export default function CaseStudyRound({ assessmentId, onComplete }) {
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Case Study Complete</h2>
           <p className="text-muted-white/70">
-            {results.next_round_started
-              ? 'Excellent analysis! Moving to domain interview...'
-              : results.overall_score >= 60
-              ? 'Good analytical thinking! Proceed to the next round.'
+            {results.overall_score >= 60
+              ? 'Excellent analysis! Click below to proceed to the domain interview.'
               : 'Review your approach and try again.'}
           </p>
         </div>
@@ -134,7 +129,7 @@ export default function CaseStudyRound({ assessmentId, onComplete }) {
           </div>
         </div>
 
-        {results.overall_score >= 60 && !results.next_round_started && (
+        {results.overall_score >= 60 && (
           <button
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all"

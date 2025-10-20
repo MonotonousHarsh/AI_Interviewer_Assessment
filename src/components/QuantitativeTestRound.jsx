@@ -72,9 +72,6 @@ export default function QuantitativeTestRound({ assessmentId, onComplete }) {
       );
 
       setResults(response);
-      if (response.next_round_started) {
-        setTimeout(() => onComplete(response), 3000);
-      }
     } catch (error) {
       alert('Failed to submit test: ' + error.message);
     } finally {
@@ -129,10 +126,8 @@ export default function QuantitativeTestRound({ assessmentId, onComplete }) {
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Quantitative Test Complete</h2>
           <p className="text-muted-white/70">
-            {results.next_round_started
-              ? 'Excellent! Moving to SQL test...'
-              : results.overall_score >= 65
-              ? 'Good performance! Proceed to the next round.'
+            {results.overall_score >= 65
+              ? 'Excellent! Click below to proceed to the SQL test.'
               : 'Score below threshold. Review your performance.'}
           </p>
         </div>
@@ -170,7 +165,7 @@ export default function QuantitativeTestRound({ assessmentId, onComplete }) {
           ))}
         </div>
 
-        {results.overall_score >= 65 && !results.next_round_started && (
+        {results.overall_score >= 65 && (
           <button
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-green-500/50 transition-all"

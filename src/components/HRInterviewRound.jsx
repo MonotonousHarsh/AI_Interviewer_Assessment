@@ -142,7 +142,6 @@ export default function HRInterviewRound({ assessmentId, onComplete }) {
       );
 
       setResults(response);
-      setTimeout(() => onComplete(response), 3000);
     } catch (error) {
       alert('Failed to complete interview: ' + error.message);
     } finally {

@@ -64,9 +64,6 @@ export default function AptitudeTestRound({ assessmentId, onComplete }) {
       );
 
       setResults(response);
-      if (response.next_round_started) {
-        setTimeout(() => onComplete(response), 3000);
-      }
     } catch (error) {
       alert('Failed to submit test: ' + error.message);
     } finally {
@@ -121,10 +118,8 @@ export default function AptitudeTestRound({ assessmentId, onComplete }) {
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Aptitude Test Complete</h2>
           <p className="text-muted-white/70">
-            {results.next_round_started
-              ? 'Great job! Moving to the next round...'
-              : results.overall_score >= 60
-              ? 'Good performance! Proceed to the next round.'
+            {results.overall_score >= 60
+              ? 'Great job! Click below to proceed to the next round.'
               : 'Score below threshold. Review your performance.'}
           </p>
         </div>
@@ -167,7 +162,7 @@ export default function AptitudeTestRound({ assessmentId, onComplete }) {
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-cyan-500/50 transition-all"
           >
-            {results.next_round_started ? 'Moving to Next Round...' : 'Proceed to Core Competency Round'}
+            Proceed to Core Competency Round
           </button>
         )}
       </div>

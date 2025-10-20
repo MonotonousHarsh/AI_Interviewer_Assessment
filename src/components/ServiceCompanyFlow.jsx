@@ -19,15 +19,17 @@ export default function ServiceCompanyFlow({ assessmentId }) {
   ];
 
   const handleRoundComplete = (roundId, data) => {
-    setCompletedRounds([...completedRounds, roundId]);
+    const updatedCompletedRounds = [...completedRounds, roundId];
+    setCompletedRounds(updatedCompletedRounds);
     setRoundData({ ...roundData, [roundId]: data });
+
+    const newProgress = (updatedCompletedRounds.length / rounds.length) * 100;
+    setProgress(newProgress);
 
     const currentIndex = rounds.findIndex(r => r.id === roundId);
     if (currentIndex < rounds.length - 1) {
       setCurrentRound(rounds[currentIndex + 1].id);
     }
-
-    setProgress(((completedRounds.length + 1) / rounds.length) * 100);
   };
 
   const CurrentRoundComponent = rounds.find(r => r.id === currentRound)?.component;

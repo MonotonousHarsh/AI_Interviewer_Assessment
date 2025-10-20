@@ -116,10 +116,6 @@ export default function TechnicalInterviewRound({ assessmentId, onComplete }) {
       );
 
       setResults(response);
-
-      if (response.next_round_started) {
-        setTimeout(() => onComplete(response), 3000);
-      }
     } catch (error) {
       alert('Failed to complete interview: ' + error.message);
     } finally {
@@ -142,10 +138,8 @@ export default function TechnicalInterviewRound({ assessmentId, onComplete }) {
           </div>
           <h2 className="text-3xl font-bold text-white mb-2">Technical Interview Complete</h2>
           <p className="text-muted-white/70">
-            {results.next_round_started
-              ? 'Excellent! Moving to HR interview...'
-              : results.overall_score >= 60
-              ? 'Good performance! Proceed to the next round.'
+            {results.overall_score >= 60
+              ? 'Excellent! Click below to proceed to the HR interview.'
               : 'Review your performance below.'}
           </p>
         </div>
@@ -186,7 +180,7 @@ export default function TechnicalInterviewRound({ assessmentId, onComplete }) {
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all"
           >
-            {results.next_round_started ? 'Moving to HR Interview...' : 'Proceed to HR Interview'}
+            Proceed to HR Interview
           </button>
         )}
       </div>
