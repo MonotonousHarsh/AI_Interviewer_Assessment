@@ -131,12 +131,12 @@ export default function CoreCompetencyRound({ assessmentId, onComplete }) {
           </div>
         </div>
 
-        {results.overall_score >= 60 && !results.next_round_started && (
+        {results.overall_score >= 60 && (
           <button
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-purple-500/50 transition-all"
           >
-            Proceed to Technical Interview
+            {results.next_round_started ? 'Moving to Technical Interview...' : 'Proceed to Technical Interview'}
           </button>
         )}
       </div>

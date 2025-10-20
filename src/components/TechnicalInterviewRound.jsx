@@ -181,12 +181,12 @@ export default function TechnicalInterviewRound({ assessmentId, onComplete }) {
           </div>
         </div>
 
-        {results.overall_score >= 60 && !results.next_round_started && (
+        {results.overall_score >= 60 && (
           <button
             onClick={() => onComplete(results)}
             className="w-full py-4 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all"
           >
-            Proceed to HR Interview
+            {results.next_round_started ? 'Moving to HR Interview...' : 'Proceed to HR Interview'}
           </button>
         )}
       </div>

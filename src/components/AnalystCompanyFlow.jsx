@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import QuantitativeTestRound from './QuantitativeTestRound';
+import SQLTestRound from './SQLTestRound';
+import CaseStudyRound from './CaseStudyRound';
+import DomainInterviewRound from './DomainInterviewRound';
 
 export default function AnalystCompanyFlow({ assessmentId }) {
   const [currentRound, setCurrentRound] = useState('quantitative_test');
@@ -8,10 +12,10 @@ export default function AnalystCompanyFlow({ assessmentId }) {
   const [roundData, setRoundData] = useState({});
 
   const rounds = [
-    { id: 'quantitative_test', name: 'Quantitative Test' },
-    { id: 'sql_test', name: 'SQL Test' },
-    { id: 'case_study', name: 'Case Study' },
-    { id: 'domain_interview', name: 'Domain Interview' },
+    { id: 'quantitative_test', name: 'Quantitative Test', component: QuantitativeTestRound },
+    { id: 'sql_test', name: 'SQL Test', component: SQLTestRound },
+    { id: 'case_study', name: 'Case Study', component: CaseStudyRound },
+    { id: 'domain_interview', name: 'Domain Interview', component: DomainInterviewRound },
   ];
 
   const handleRoundComplete = (roundId, data) => {
@@ -25,6 +29,8 @@ export default function AnalystCompanyFlow({ assessmentId }) {
 
     setProgress(((completedRounds.length + 1) / rounds.length) * 100);
   };
+
+  const CurrentRoundComponent = rounds.find(r => r.id === currentRound)?.component;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
@@ -99,22 +105,12 @@ export default function AnalystCompanyFlow({ assessmentId }) {
           </div>
         </div>
 
-        <div className="glass-effect rounded-2xl p-8 border border-yellow-500/30 bg-yellow-500/10 text-center">
-          <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-white mb-2">Analyst Pipeline Coming Soon!</h2>
-          <p className="text-muted-white/70 mb-6">
-            The analyst assessment pipeline is currently under development. This will include:
-          </p>
-          <ul className="text-left max-w-2xl mx-auto text-muted-white/80 space-y-2 mb-6">
-            <li>• Quantitative & Analytical Reasoning Test</li>
-            <li>• SQL & Data Manipulation Challenges</li>
-            <li>• Business Case Study Analysis</li>
-            <li>• Domain-Specific Technical Discussion</li>
-          </ul>
-          <p className="text-sm text-muted-white/60">
-            Please check back soon or try the Service Company or Product Company pipelines.
-          </p>
-        </div>
+        {CurrentRoundComponent && (
+          <CurrentRoundComponent
+            assessmentId={assessmentId}
+            onComplete={(data) => handleRoundComplete(currentRound, data)}
+          />
+        )}
 
         {completedRounds.length === rounds.length && (
           <div className="glass-effect rounded-2xl p-8 border border-green-500/30 text-center">
