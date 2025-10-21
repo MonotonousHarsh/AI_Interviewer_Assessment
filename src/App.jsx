@@ -45,16 +45,16 @@ function App() {
         document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } else if (type === 'service') {
-      setCurrentStep('job-description');
-      setTimeout(() => {
-        document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      handleProceedToAssessment('service');
     } else if (type === 'analyst') {
-      setCurrentStep('job-description');
-      setTimeout(() => {
-        document.getElementById('job-description')?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      handleProceedToAssessment('analyst');
     }
+  };
+
+  const handleDirectVirtualInterview = (type) => {
+    setCompanyType(type);
+    setCurrentStep('virtual-interview');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleJobCreated = (profile) => {
@@ -344,7 +344,10 @@ function App() {
       <Features />
 
       {(currentStep === 'company-type' || currentStep === 'job-description' || currentStep === 'resume-upload' || currentStep === 'screening-results') && (
-        <CompanyTypeSelector onSelectType={handleCompanyTypeSelect} />
+        <CompanyTypeSelector
+          onSelectType={handleCompanyTypeSelect}
+          onDirectVirtualInterview={handleDirectVirtualInterview}
+        />
       )}
 
       {(currentStep === 'job-description' || currentStep === 'resume-upload' || currentStep === 'screening-results') && companyType === 'product' && (
@@ -381,6 +384,7 @@ function App() {
             jobProfile={jobProfile}
             onRetry={handleRetry}
             onProceedToAssessment={handleProceedToAssessment}
+            onDirectVirtualInterview={handleDirectVirtualInterview}
           />
         </div>
       )}

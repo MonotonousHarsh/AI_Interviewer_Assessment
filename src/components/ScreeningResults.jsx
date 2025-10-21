@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, TrendingUp, Award, Briefcase, MessageSquare, RefreshCw, ArrowRight, Building2, Users, BarChart3 } from 'lucide-react';
 
-export default function ScreeningResults({ screeningResult, jobProfile, onRetry, onProceedToAssessment }) {
+export default function ScreeningResults({ screeningResult, jobProfile, onRetry, onProceedToAssessment, onDirectVirtualInterview }) {
   const [isVisible, setIsVisible] = useState(false);
   const [showPipelineSelection, setShowPipelineSelection] = useState(false);
   const [selectedPipeline, setSelectedPipeline] = useState(null);
@@ -270,14 +270,27 @@ export default function ScreeningResults({ screeningResult, jobProfile, onRetry,
               })}
             </div>
 
-            <button
-              onClick={() => onProceedToAssessment(selectedPipeline)}
-              disabled={!selectedPipeline}
-              className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-accent-1 to-accent-2 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              Start {selectedPipeline ? selectedPipeline.charAt(0).toUpperCase() + selectedPipeline.slice(1) : ''} Assessment
-              <ArrowRight className="w-5 h-5" />
-            </button>
+            <div className="space-y-3">
+              <button
+                onClick={() => onProceedToAssessment(selectedPipeline)}
+                disabled={!selectedPipeline}
+                className="w-full px-6 py-4 rounded-xl bg-gradient-to-r from-accent-1 to-accent-2 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                Start {selectedPipeline ? selectedPipeline.charAt(0).toUpperCase() + selectedPipeline.slice(1) : ''} Assessment
+                <ArrowRight className="w-5 h-5" />
+              </button>
+
+              {onDirectVirtualInterview && (
+                <button
+                  onClick={() => onDirectVirtualInterview(selectedPipeline)}
+                  disabled={!selectedPipeline}
+                  className="w-full px-6 py-3 rounded-xl glass-effect border border-cyan-glow/30 text-muted-white font-semibold hover:border-cyan-glow/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  Skip to Virtual Interview
+                  <ArrowRight className="w-5 h-5" />
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

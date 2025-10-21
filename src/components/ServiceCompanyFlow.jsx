@@ -132,12 +132,6 @@ export default function ServiceCompanyFlow({ assessmentId, onComplete }) {
             >
               Proceed to Virtual Interview
             </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-gradient-to-r from-accent-1 to-accent-2 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
-            >
-              View Final Results
-            </button>
           </div>
         )}
       </div>

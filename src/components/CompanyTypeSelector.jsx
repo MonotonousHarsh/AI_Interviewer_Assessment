@@ -1,6 +1,6 @@
 import { Building2, Users, BarChart3, ArrowRight } from 'lucide-react';
 
-export default function CompanyTypeSelector({ onSelectType }) {
+export default function CompanyTypeSelector({ onSelectType, onDirectVirtualInterview }) {
   const companyTypes = [
     {
       id: 'product',
@@ -83,18 +83,29 @@ export default function CompanyTypeSelector({ onSelectType }) {
                   ))}
                 </div>
 
-                <button
-                  onClick={() => !type.comingSoon && onSelectType(type.id)}
-                  disabled={type.comingSoon}
-                  className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-                    type.comingSoon
-                      ? 'bg-slate-700/50 text-muted-white/50 cursor-not-allowed'
-                      : `bg-gradient-to-r ${type.color} text-white hover:shadow-lg`
-                  }`}
-                >
-                  {type.comingSoon ? 'Coming Soon' : 'Select Pipeline'}
-                  {!type.comingSoon && <ArrowRight className="w-4 h-4" />}
-                </button>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => !type.comingSoon && onSelectType(type.id)}
+                    disabled={type.comingSoon}
+                    className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
+                      type.comingSoon
+                        ? 'bg-slate-700/50 text-muted-white/50 cursor-not-allowed'
+                        : `bg-gradient-to-r ${type.color} text-white hover:shadow-lg`
+                    }`}
+                  >
+                    {type.comingSoon ? 'Coming Soon' : 'Full Pipeline'}
+                    {!type.comingSoon && <ArrowRight className="w-4 h-4" />}
+                  </button>
+
+                  {!type.comingSoon && onDirectVirtualInterview && (
+                    <button
+                      onClick={() => onDirectVirtualInterview(type.id)}
+                      className="w-full py-2 rounded-xl font-medium transition-all flex items-center justify-center gap-2 bg-slate-700/50 hover:bg-slate-700 text-muted-white border border-slate-600 hover:border-slate-500"
+                    >
+                      Skip to Interview
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
