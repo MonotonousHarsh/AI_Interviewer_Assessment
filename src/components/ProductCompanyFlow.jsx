@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react';
+import { CheckCircle, Clock } from 'lucide-react';
+import CodingRound from './CodingRound';
+import LiveCodingRound from './LiveCodingRound';
+import SystemDesignRound from './SystemDesignRound';
+
+export default function ProductCompanyFlow({ assessmentId, onComplete }) {
+  const [currentRound, setCurrentRound] = useState('coding_round');
+  const [completedRounds, setCompletedRounds] = useState([]);
+  const [progress, setProgress] = useState(0);
+  const [roundData, setRoundData] = useState({});
+  const [allComplete, setAllComplete] = useState(false);
+
+  const rounds = [
+    { id: 'coding_round', name: 'DSA Coding Round', component: CodingRound },
+    { id: 'live_coding_round', name: 'Live Coding Interview', component: LiveCodingRound },
+    { id: 'system_design_round', name: 'System Design Round', component: SystemDesignRound },
+  ];
+
+  const handleRoundComplete = (roundId, data) => {
+    const updatedCompletedRounds = [...completedRounds, roundId];
+    setCompletedRounds(updatedCompletedRounds);
+    setRoundData({ ...roundData, [roundId]: data });
+
+    const newProgress = (updatedCompletedRounds.length / rounds.length) * 100;
+    setProgress(newProgress);
+
+    const currentIndex = rounds.findIndex(r => r.id === roundId);
+    if (currentIndex < rounds.length - 1) {
+      setCurrentRound(rounds[currentIndex + 1].id);
+    } else {
+      setAllComplete(true);
+    }
+  };
+
+  const CurrentRoundComponent = rounds.find(r => r.id === currentRound)?.component;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <div className="glass-effect rounded-2xl p-6 border border-cyan-glow/20">
+            <h1 className="text-3xl font-bold text-white mb-6">Product-Based Company Assessment Pipeline</h1>
+
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-white/80">Overall Progress</span>
+                <span className="text-sm font-semibold text-cyan-glow">{Math.round(progress)}%</span>
+              </div>
+              <div className="w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-accent-1 to-neon-green transition-all duration-500 rounded-full"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+              {rounds.map((round, index) => {
+                const isCompleted = completedRounds.includes(round.id);
+                const isCurrent = currentRound === round.id;
+                const isUpcoming = !isCompleted && !isCurrent;
+
+                return (
+                  <div
+                    key={round.id}
+                    className={`relative p-4 rounded-xl border transition-all ${
+                      isCompleted
+                        ? 'bg-green-500/10 border-green-500/50'
+                        : isCurrent
+                        ? 'bg-accent-1/10 border-accent-1/50 shadow-lg shadow-accent-1/20'
+                        : 'bg-slate-800/50 border-slate-700/50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                          isCompleted
+                            ? 'bg-green-500'
+                            : isCurrent
+                            ? 'bg-accent-1 animate-pulse'
+                            : 'bg-slate-700'
+                        }`}
+                      >
+                        {isCompleted ? (
+                          <CheckCircle className="w-5 h-5 text-white" />
+                        ) : isCurrent ? (
+                          <Clock className="w-5 h-5 text-white" />
+                        ) : (
+                          <span className="text-white text-sm font-semibold">{index + 1}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className={`font-semibold text-sm ${
+                          isCompleted ? 'text-green-400' : isCurrent ? 'text-accent-1' : 'text-muted-white/60'
+                        }`}>
+                          {round.name}
+                        </h3>
+                        <p className="text-xs text-muted-white/50 mt-1">
+                          {isCompleted ? 'Completed' : isCurrent ? 'In Progress' : 'Pending'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {CurrentRoundComponent && (
+          <CurrentRoundComponent
+            assessmentId={assessmentId}
+            onComplete={(data) => handleRoundComplete(currentRound, data)}
+          />
+        )}
+
+        {allComplete && (
+          <div className="glass-effect rounded-2xl p-8 border border-green-500/30 text-center">
+            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-10 h-10 text-green-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Assessment Complete!</h2>
+            <p className="text-muted-white/70 mb-6">
+              You've successfully completed all rounds of the product-based company assessment.
+            </p>
+            <button
+              onClick={() => onComplete && onComplete(roundData)}
+              className="px-8 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1"
+            >
+              Proceed to Virtual Interview
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -7,7 +7,7 @@ import CompanyTypeSelector from './components/CompanyTypeSelector';
 import JobDescriptionForm from './components/JobDescriptionForm';
 import ResumeUpload from './components/ResumeUpload';
 import ScreeningResults from './components/ScreeningResults';
-import AssessmentFlow from './components/AssessmentFlow';
+import ProductCompanyFlow from './components/ProductCompanyFlow';
 import ServiceCompanyFlow from './components/ServiceCompanyFlow';
 import AnalystCompanyFlow from './components/AnalystCompanyFlow';
 import VirtualInterview from './components/VirtualInterview';
@@ -143,7 +143,7 @@ function App() {
 
         const assessment = await response.json();
         setAssessmentData(assessment);
-        setCurrentStep('assessment');
+        setCurrentStep('product-assessment');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (error) {
@@ -385,12 +385,12 @@ function App() {
     );
   }
 
-  if (currentStep === 'assessment' && assessmentData) {
+  if (currentStep === 'product-assessment' && assessmentData) {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
         <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
-        <AssessmentFlow
-          assessmentData={assessmentData}
+        <ProductCompanyFlow
+          assessmentId={assessmentData.assessment_id}
           onComplete={handleAssessmentComplete}
         />
         <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
