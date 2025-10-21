@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Video, VideoOff, Send, MessageSquare, User, Volume2, VolumeX, CheckCircle2, Loader2, AlertCircle } from 'lucide-react';
 import { API_BASE_URL } from '../config/api';
+import { saveAssessmentHistory } from '../utils/supabaseClient';
 
-export default function VirtualInterview({ assessmentId, onComplete }) {
+export default function VirtualInterview({ assessmentId, candidateId, companyType, onComplete }) {
   const [sessionId, setSessionId] = useState(null);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState('');
@@ -25,7 +26,22 @@ export default function VirtualInterview({ assessmentId, onComplete }) {
 
   useEffect(() => {
     startInterview();
+    saveInitialHistory();
   }, []);
+
+  const saveInitialHistory = async () => {
+    try {
+      await saveAssessmentHistory({
+        candidate_id: candidateId || `candidate_${Date.now()}`,
+        assessment_id: assessmentId || `assessment_${Date.now()}`,
+        company_type: companyType || 'product',
+        status: 'in_progress',
+        started_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Failed to save assessment history:', error);
+    }
+  };
 
   useEffect(() => {
     if (transcriptRef.current) {

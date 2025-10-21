@@ -11,6 +11,8 @@ import AssessmentFlow from './components/AssessmentFlow';
 import ServiceCompanyFlow from './components/ServiceCompanyFlow';
 import AnalystCompanyFlow from './components/AnalystCompanyFlow';
 import VirtualInterview from './components/VirtualInterview';
+import ComprehensiveReport from './components/ComprehensiveReport';
+import AssessmentHistory from './components/AssessmentHistory';
 
 function App() {
   const [currentStep, setCurrentStep] = useState('hero');
@@ -19,6 +21,8 @@ function App() {
   const [screeningResult, setScreeningResult] = useState(null);
   const [assessmentData, setAssessmentData] = useState(null);
   const [scrollY, setScrollY] = useState(0);
+  const [candidateId] = useState(`candidate_${Date.now()}`);
+  const [reportData, setReportData] = useState(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -162,17 +166,111 @@ function App() {
   };
 
   const handleInterviewComplete = (interviewResults) => {
-    alert('Interview completed successfully! Check console for results.');
-    console.log('Interview Results:', interviewResults);
-    resetApp();
+    setCurrentStep('comprehensive-report');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleViewHistory = () => {
+    setCurrentStep('history');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleViewReportFromHistory = (reportId, assessmentId) => {
+    setAssessmentData({ assessment_id: assessmentId });
+    setCurrentStep('comprehensive-report');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (currentStep === 'comprehensive-report') {
+    return (
+      <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
+        <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
+        <ComprehensiveReport
+          assessmentId={assessmentData?.assessment_id}
+          candidateId={candidateId}
+          onBackToHome={resetApp}
+        />
+        <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-1 to-accent-2 flex items-center justify-center">
+                  <span className="text-white font-bold">AI</span>
+                </div>
+                <span className="text-muted-white font-semibold">AI InterviewHub</span>
+              </div>
+
+              <div className="text-muted-white/60 text-sm text-center md:text-left">
+                © 2025 AI InterviewHub. Powered by Advanced AI Technology.
+              </div>
+
+              <div className="flex gap-6">
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Privacy
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Terms
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Contact
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  if (currentStep === 'history') {
+    return (
+      <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
+        <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
+        <AssessmentHistory
+          candidateId={candidateId}
+          onViewReport={handleViewReportFromHistory}
+          onBackToHome={resetApp}
+        />
+        <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-1 to-accent-2 flex items-center justify-center">
+                  <span className="text-white font-bold">AI</span>
+                </div>
+                <span className="text-muted-white font-semibold">AI InterviewHub</span>
+              </div>
+
+              <div className="text-muted-white/60 text-sm text-center md:text-left">
+                © 2025 AI InterviewHub. Powered by Advanced AI Technology.
+              </div>
+
+              <div className="flex gap-6">
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Privacy
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Terms
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Contact
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
 
   if (currentStep === 'virtual-interview') {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
-        <Navbar />
+        <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
         <VirtualInterview
           assessmentId={assessmentData?.assessment_id}
+          candidateId={candidateId}
+          companyType={companyType}
           onComplete={handleInterviewComplete}
         />
         <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
@@ -210,7 +308,7 @@ function App() {
   if (currentStep === 'analyst-assessment' && assessmentData) {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
-        <Navbar />
+        <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
         <AnalystCompanyFlow
           assessmentId={assessmentData.assessment_id}
           onComplete={handleAssessmentComplete}
@@ -250,7 +348,7 @@ function App() {
   if (currentStep === 'service-assessment' && assessmentData) {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
-        <Navbar />
+        <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
         <ServiceCompanyFlow
           assessmentId={assessmentData.assessment_id}
           onComplete={handleAssessmentComplete}
@@ -290,7 +388,7 @@ function App() {
   if (currentStep === 'assessment' && assessmentData) {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
-        <Navbar />
+        <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
         <AssessmentFlow
           assessmentData={assessmentData}
           onComplete={handleAssessmentComplete}
@@ -329,7 +427,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
-      <Navbar onGetStarted={handleGetStarted} />
+      <Navbar onGetStarted={handleGetStarted} onViewHistory={handleViewHistory} />
 
       <div
         style={{

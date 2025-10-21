@@ -1,7 +1,7 @@
-import { Briefcase, Menu, X } from 'lucide-react';
+import { Briefcase, Menu, X, History } from 'lucide-react';
 import { useState } from 'react';
 
-export default function Navbar({ onGetStarted }) {
+export default function Navbar({ onGetStarted, onViewHistory }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const scrollToSection = (sectionId) => {
@@ -24,6 +24,13 @@ export default function Navbar({ onGetStarted }) {
       onGetStarted();
     } else {
       scrollToSection('home');
+    }
+    setIsMenuOpen(false);
+  };
+
+  const handleViewHistory = () => {
+    if (onViewHistory) {
+      onViewHistory();
     }
     setIsMenuOpen(false);
   };
@@ -62,6 +69,13 @@ export default function Navbar({ onGetStarted }) {
               Features
             </button>
             <button
+              onClick={handleViewHistory}
+              className="flex items-center gap-2 text-muted-white/80 hover:text-muted-white transition-colors text-sm font-medium"
+            >
+              <History className="w-4 h-4" />
+              History
+            </button>
+            <button
               onClick={handleGetStarted}
               className="px-4 py-2 rounded-lg bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold text-sm shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-0.5"
             >
@@ -98,6 +112,13 @@ export default function Navbar({ onGetStarted }) {
               className="block w-full text-left text-muted-white/80 hover:text-muted-white transition-colors text-sm font-medium py-2"
             >
               Features
+            </button>
+            <button
+              onClick={handleViewHistory}
+              className="flex items-center gap-2 w-full text-left text-muted-white/80 hover:text-muted-white transition-colors text-sm font-medium py-2"
+            >
+              <History className="w-4 h-4" />
+              History
             </button>
             <button
               onClick={handleGetStarted}
