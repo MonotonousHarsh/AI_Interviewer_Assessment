@@ -5,11 +5,12 @@ import SQLTestRound from './SQLTestRound';
 import CaseStudyRound from './CaseStudyRound';
 import DomainInterviewRound from './DomainInterviewRound';
 
-export default function AnalystCompanyFlow({ assessmentId }) {
+export default function AnalystCompanyFlow({ assessmentId, onComplete }) {
   const [currentRound, setCurrentRound] = useState('quantitative_test');
   const [completedRounds, setCompletedRounds] = useState([]);
   const [progress, setProgress] = useState(0);
   const [roundData, setRoundData] = useState({});
+  const [allComplete, setAllComplete] = useState(false);
 
   const rounds = [
     { id: 'quantitative_test', name: 'Quantitative Test', component: QuantitativeTestRound },
@@ -29,6 +30,8 @@ export default function AnalystCompanyFlow({ assessmentId }) {
     const currentIndex = rounds.findIndex(r => r.id === roundId);
     if (currentIndex < rounds.length - 1) {
       setCurrentRound(rounds[currentIndex + 1].id);
+    } else {
+      setAllComplete(true);
     }
   };
 
@@ -114,7 +117,7 @@ export default function AnalystCompanyFlow({ assessmentId }) {
           />
         )}
 
-        {completedRounds.length === rounds.length && (
+        {allComplete && (
           <div className="glass-effect rounded-2xl p-8 border border-green-500/30 text-center">
             <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-green-400" />
@@ -124,10 +127,10 @@ export default function AnalystCompanyFlow({ assessmentId }) {
               You've successfully completed all rounds of the analyst assessment.
             </p>
             <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all"
+              onClick={() => onComplete && onComplete(roundData)}
+              className="px-8 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1"
             >
-              View Final Results
+              Proceed to Virtual Interview
             </button>
           </div>
         )}

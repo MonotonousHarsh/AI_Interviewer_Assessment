@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import HowItWorks from './components/HowItWorks';
+import Features from './components/Features';
 import CompanyTypeSelector from './components/CompanyTypeSelector';
 import JobDescriptionForm from './components/JobDescriptionForm';
 import ResumeUpload from './components/ResumeUpload';
@@ -8,6 +10,7 @@ import ScreeningResults from './components/ScreeningResults';
 import AssessmentFlow from './components/AssessmentFlow';
 import ServiceCompanyFlow from './components/ServiceCompanyFlow';
 import AnalystCompanyFlow from './components/AnalystCompanyFlow';
+import VirtualInterview from './components/VirtualInterview';
 
 function App() {
   const [currentStep, setCurrentStep] = useState('hero');
@@ -153,11 +156,65 @@ function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleAssessmentComplete = (assessmentResults) => {
+    setCurrentStep('virtual-interview');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleInterviewComplete = (interviewResults) => {
+    alert('Interview completed successfully! Check console for results.');
+    console.log('Interview Results:', interviewResults);
+    resetApp();
+  };
+
+  if (currentStep === 'virtual-interview') {
+    return (
+      <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
+        <Navbar />
+        <VirtualInterview
+          assessmentId={assessmentData?.assessment_id}
+          onComplete={handleInterviewComplete}
+        />
+        <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-1 to-accent-2 flex items-center justify-center">
+                  <span className="text-white font-bold">AI</span>
+                </div>
+                <span className="text-muted-white font-semibold">AI InterviewHub</span>
+              </div>
+
+              <div className="text-muted-white/60 text-sm text-center md:text-left">
+                © 2025 AI InterviewHub. Powered by Advanced AI Technology.
+              </div>
+
+              <div className="flex gap-6">
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Privacy
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Terms
+                </a>
+                <a href="#" className="text-muted-white/60 hover:text-muted-white transition-colors text-sm">
+                  Contact
+                </a>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
   if (currentStep === 'analyst-assessment' && assessmentData) {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
         <Navbar />
-        <AnalystCompanyFlow assessmentId={assessmentData.assessment_id} />
+        <AnalystCompanyFlow
+          assessmentId={assessmentData.assessment_id}
+          onComplete={handleAssessmentComplete}
+        />
         <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -194,7 +251,10 @@ function App() {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
         <Navbar />
-        <ServiceCompanyFlow assessmentId={assessmentData.assessment_id} />
+        <ServiceCompanyFlow
+          assessmentId={assessmentData.assessment_id}
+          onComplete={handleAssessmentComplete}
+        />
         <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -231,7 +291,10 @@ function App() {
     return (
       <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
         <Navbar />
-        <AssessmentFlow assessmentData={assessmentData} />
+        <AssessmentFlow
+          assessmentData={assessmentData}
+          onComplete={handleAssessmentComplete}
+        />
         <footer className="relative z-10 py-12 border-t border-grid-blue/20 mt-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-center justify-between gap-6">
@@ -266,7 +329,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-bg-deep text-muted-white overflow-x-hidden">
-      <Navbar />
+      <Navbar onGetStarted={handleGetStarted} />
 
       <div
         style={{
@@ -276,6 +339,9 @@ function App() {
       >
         <Hero onGetStarted={handleGetStarted} />
       </div>
+
+      <HowItWorks />
+      <Features />
 
       {(currentStep === 'company-type' || currentStep === 'job-description' || currentStep === 'resume-upload' || currentStep === 'screening-results') && (
         <CompanyTypeSelector onSelectType={handleCompanyTypeSelect} />

@@ -5,11 +5,12 @@ import CoreCompetencyRound from './CoreCompetencyRound';
 import TechnicalInterviewRound from './TechnicalInterviewRound';
 import HRInterviewRound from './HRInterviewRound';
 
-export default function ServiceCompanyFlow({ assessmentId }) {
+export default function ServiceCompanyFlow({ assessmentId, onComplete }) {
   const [currentRound, setCurrentRound] = useState('aptitude_test');
   const [completedRounds, setCompletedRounds] = useState([]);
   const [progress, setProgress] = useState(0);
   const [roundData, setRoundData] = useState({});
+  const [allComplete, setAllComplete] = useState(false);
 
   const rounds = [
     { id: 'aptitude_test', name: 'Aptitude Test', component: AptitudeTestRound },
@@ -29,6 +30,8 @@ export default function ServiceCompanyFlow({ assessmentId }) {
     const currentIndex = rounds.findIndex(r => r.id === roundId);
     if (currentIndex < rounds.length - 1) {
       setCurrentRound(rounds[currentIndex + 1].id);
+    } else {
+      setAllComplete(true);
     }
   };
 
@@ -114,7 +117,7 @@ export default function ServiceCompanyFlow({ assessmentId }) {
           />
         )}
 
-        {completedRounds.length === rounds.length && (
+        {allComplete && (
           <div className="glass-effect rounded-2xl p-8 border border-green-500/30 text-center">
             <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-10 h-10 text-green-400" />
@@ -123,6 +126,12 @@ export default function ServiceCompanyFlow({ assessmentId }) {
             <p className="text-muted-white/70 mb-6">
               You've successfully completed all rounds of the service company assessment.
             </p>
+            <button
+              onClick={() => onComplete && onComplete(roundData)}
+              className="px-8 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1"
+            >
+              Proceed to Virtual Interview
+            </button>
             <button
               onClick={() => window.location.reload()}
               className="px-6 py-3 bg-gradient-to-r from-accent-1 to-accent-2 text-white rounded-xl font-semibold hover:shadow-lg transition-all"

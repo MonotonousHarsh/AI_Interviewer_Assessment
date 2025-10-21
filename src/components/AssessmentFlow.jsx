@@ -4,7 +4,7 @@ import CodingRound from './CodingRound';
 import LiveCodingRound from './LiveCodingRound';
 import SystemDesignRound from './SystemDesignRound';
 
-export default function AssessmentFlow({ assessmentData }) {
+export default function AssessmentFlow({ assessmentData, onComplete }) {
   const [currentStage, setCurrentStage] = useState('overview');
   const [assessmentId] = useState(assessmentData?.assessment_id);
   const [pipeline] = useState(assessmentData?.pipeline || []);
@@ -95,9 +95,18 @@ export default function AssessmentFlow({ assessmentData }) {
               ))}
             </div>
 
-            <p className="text-muted-white/60 text-sm">
-              Your results will be reviewed and you will be contacted shortly.
-            </p>
+            <div className="flex flex-col gap-4 items-center">
+              <p className="text-muted-white/60 text-sm">
+                Ready for the next stage?
+              </p>
+              <button
+                onClick={() => onComplete && onComplete(roundResults)}
+                className="px-8 py-4 rounded-xl bg-gradient-to-b from-accent-1 to-accent-2 text-white font-semibold shadow-btn-primary hover:shadow-btn-primary-hover transition-all hover:-translate-y-1 flex items-center gap-2"
+              >
+                Proceed to Virtual Interview
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </section>
